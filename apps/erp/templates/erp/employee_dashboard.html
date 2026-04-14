@@ -1,0 +1,77 @@
+{% extends "erp/base.html" %}
+
+{% block title %}My Payslips{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>My Payslips</h2>
+    <p class="mb-1">
+        <strong>{{ employee.full_name }}</strong> | {{ employee.employee_id }} 
+        {% if employee.department %} | {{ employee.department }}{% endif %}
+    </p>
+    
+    <h3 class="mt-1">Year-to-Date Summary</h3>
+    <table>
+        <tbody>
+            <tr>
+                <td>Gross YTD</td>
+                <td class="text-right">{{ ytd.gross|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>PAYE YTD</td>
+                <td class="text-right">{{ ytd.paye|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>Pension YTD</td>
+                <td class="text-right">{{ ytd.pension|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td><strong>Net YTD</strong></td>
+                <td class="text-right"><strong>{{ ytd.net|floatformat:2 }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h3>Payslip History</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Gross</th>
+                <th>Deductions</th>
+                <th>Net Pay</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in payslips %}
+            <tr>
+                <td>{{ p.payroll_period.name }}</td>
+                <td>{{ p.gross_pay|floatformat:2 }}</td>
+                <td>{{ p.total_deductions|floatformat:2 }}</td>
+                <td><strong>{{ p.net_pay|floatformat:2 }}</strong></td>
+                <td>
+                    <span class="badge badge-{{ p.payroll_period.status }}">
+                        {{ p.payroll_period.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if p.payroll_period.status == 'paid' %}
+                        <a href="{% url 'erp:payslip_pdf' p.pk %}" class="btn">PDF</a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">No payslips found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
