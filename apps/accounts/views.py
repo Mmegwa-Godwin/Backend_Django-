@@ -1,43 +1,34 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import SignUpForm, ProfileForm
 
-
-def register_view(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-
-        if User.objects.filter(username=username).exists():
-            return render(request, "accounts/register.html", {
-                "error": "Username already exists"
-            })
-
-        user = User.objects.create_user(username=username, password=password)
-        login(request, user)
-        return redirect('dashboard_home')
-
-    return render(request, "accounts/register.html")
-
-
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-
-        user = authenticate(request, username=username, password=password)
-
-        if user:
+def signup_view(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
             login(request, user)
-            return redirect('dashboard_home')
+            messages.success(request, 'Account created successfully!')
+            return redirect('projects:home')
+    else:
+        form = SignUpForm()
+    return render(request, 'accounts/signup.html', {'form': form})
 
-        return render(request, "accounts/login.html", {
-            "error": "Invalid credentials"
-        })
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated!')
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=request.user.profile)
+    return render(request, 'accounts/profile.html', {'form': form})
+from django.contrib.auth.views import LoginView
 
-    return render(request, "accounts/login.html")
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+class CustomLoginView(LoginView):
+    template_name = 'accounts/login.html'
+    redirect_authenticated_user = True

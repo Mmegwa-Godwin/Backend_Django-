@@ -73,5 +73,6 @@ TEMPLATES = [
         },
     },
 ]
-LOGIN_REDIRECT_URL = '/erp/me/'
-LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = 'dashboard:index'
+LOGIN_URL = 'accounts:login'
+LOGOUT_REDIRECT_URL = 'projects:home'
